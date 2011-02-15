@@ -2,15 +2,16 @@
 #include "ui_joypick.h"
 
 Joypick::Joypick(QWidget *parent) :
-        QWidget(parent),
-        ui(new Ui::Joypick)
+        QWidget(parent)
 {
     joy = new QJoystick;
     data_timer = new QTimer;
 
     data_timer->setInterval(50);
 
-    ui->setupUi(this);
+    setupui();
+
+  //  setupUi(this);
     // Initialize joysticks
     init_joysticks();
 
@@ -20,9 +21,9 @@ Joypick::Joypick(QWidget *parent) :
     {
         updateSelection(0);
         connect(data_timer,SIGNAL(timeout()),this,SLOT(updateData()));
-        connect(ui->avail_box,SIGNAL(currentIndexChanged(int)),this,SLOT(updateSelection(int)));
-        connect(ui->sample_box,SIGNAL(toggled(bool)),this,SLOT(toggleSampling(bool)));
-        if(ui->sample_box->isChecked())
+        connect(avail_box,SIGNAL(currentIndexChanged(int)),this,SLOT(updateSelection(int)));
+        connect(sample_box,SIGNAL(toggled(bool)),this,SLOT(toggleSampling(bool)));
+        if(sample_box->isChecked())
             data_timer->start();
     }
 
@@ -31,19 +32,49 @@ Joypick::Joypick(QWidget *parent) :
 Joypick::~Joypick()
 {
     joy->~QJoystick();
-    delete ui;
 }
 
-void Joypick::changeEvent(QEvent *e)
+void Joypick::setupui()
 {
-    QWidget::changeEvent(e);
-    switch (e->type()) {
-    case QEvent::LanguageChange:
-        ui->retranslateUi(this);
-        break;
-    default:
-        break;
-    }
+mainLayout = new QVBoxLayout;
+avail_label = new QLabel("Joysticks available");
+horizontalLayout = new QHBoxLayout;
+avail_box = new QComboBox;
+sample_box = new QCheckBox("Continuous sampling");
+num_axbtnlabel = new QLabel("Axes");
+horizontalLayout2 = new QHBoxLayout;
+axes_Layout = new QHBoxLayout;
+horizontalLayout3 = new QHBoxLayout;
+buttons_Layout = new QHBoxLayout;
+
+avail_label->setAlignment(Qt::AlignHCenter);
+mainLayout->addWidget(avail_label);
+
+horizontalLayout->addWidget(avail_box);
+horizontalLayout->addWidget(sample_box);
+mainLayout->addLayout(horizontalLayout);
+
+num_axbtnlabel->setAlignment(Qt::AlignHCenter);
+mainLayout->addWidget(num_axbtnlabel);
+mainLayout->addStretch(1);
+
+horizontalLayout2->addStretch(1);
+horizontalLayout2->addLayout(axes_Layout);
+horizontalLayout2->addStretch(1);
+
+mainLayout->addLayout(horizontalLayout2);
+mainLayout->addStretch(1);
+
+horizontalLayout3->addStretch(1);
+horizontalLayout3->addLayout(buttons_Layout);
+horizontalLayout3->addStretch(1);
+
+mainLayout->addLayout(horizontalLayout3);
+mainLayout->addStretch(1);
+
+this->setLayout(mainLayout);
+
+
 }
 
 // Initialize Joystick information
@@ -51,7 +82,7 @@ void Joypick::changeEvent(QEvent *e)
 // Populate # of axes and buttons
 void Joypick::init_joysticks()
 {
-    ui->avail_box->clear();
+    avail_box->clear();
 
     // Find number of joysticks present
     joysavail=joy->availableJoysticks();
@@ -68,14 +99,14 @@ void Joypick::init_joysticks()
     switch (joysavail)
     {
     case 0:
-        ui->avail_label->setText(QString("No joysticks found"));
-        ui->avail_box->setDisabled(true);
+        avail_label->setText(QString("No joysticks found"));
+        avail_box->setDisabled(true);
         break;
     default:
         if(joysavail==1)
-            ui->avail_label->setText(QString("%1 joystick found").arg(joysavail));
+            avail_label->setText(QString("%1 joystick found").arg(joysavail));
         else
-        ui->avail_label->setText(QString("%1 joysticks found").arg(joysavail));
+        avail_label->setText(QString("%1 joysticks found").arg(joysavail));
 
         // Populate data structure for all joysticks
         for(int i=0; i<joysavail;i++)
@@ -83,7 +114,7 @@ void Joypick::init_joysticks()
             joy->setJoystick(i);
 
             // Populate ComboBox
-            ui->avail_box->addItem(joy->joystickName(i));
+            avail_box->addItem(joy->joystickName(i));
 
             // Axes
             joystick.at(i)->number_axes = joy->joystickNumAxes(i);
@@ -103,9 +134,9 @@ void Joypick::init_joysticks()
         }
 
         current_joystick = 0;
-        ui->num_axbtnlabel->setText(QString("%1 axes - %2 buttons").arg(joystick.at(0)->number_axes).arg(joystick.at(0)->number_btn));
+        num_axbtnlabel->setText(QString("%1 axes - %2 buttons").arg(joystick.at(0)->number_axes).arg(joystick.at(0)->number_btn));
 
-        joy->setJoystick(ui->avail_box->currentIndex());
+        joy->setJoystick(avail_box->currentIndex());
 
         break;
     }
@@ -116,7 +147,7 @@ void Joypick::init_joysticks()
 void Joypick::updateSelection(int index)
 {
     QLayoutItem *child;
-    while ((child = ui->axes_Layout->takeAt(0)) != 0) {
+    while ((child = axes_Layout->takeAt(0)) != 0) {
         delete child->widget();
         delete child;
     }
@@ -130,9 +161,9 @@ void Joypick::updateSelection(int index)
     pbarlist.clear();
     pbarlablist.clear();
 
-    while(!ui->buttons_Layout->isEmpty())
+    while(!buttons_Layout->isEmpty())
     {
-        ui->buttons_Layout->removeWidget(ui->buttons_Layout->takeAt(0)->widget());
+        buttons_Layout->removeWidget(buttons_Layout->takeAt(0)->widget());
     }
 
     for(int j=0;j<checklist.size();j++)
@@ -143,8 +174,8 @@ void Joypick::updateSelection(int index)
 
     current_joystick=index;
 
-    ui->num_axbtnlabel->setText(QString("%1 axes - %2 buttons").arg(joystick.at(index)->number_axes).arg(joystick.at(index)->number_btn));
-    joy->setJoystick(ui->avail_box->currentIndex());
+    num_axbtnlabel->setText(QString("%1 axes - %2 buttons").arg(joystick.at(index)->number_axes).arg(joystick.at(index)->number_btn));
+    joy->setJoystick(avail_box->currentIndex());
 
     for(unsigned int i=0;i<joystick.at(index)->number_axes;i++)
     {
@@ -171,7 +202,7 @@ void Joypick::updateSelection(int index)
         pbarlayout->addWidget(pbarlist.at(i));
         pbarlayout->addWidget(pbarlablist.at(i));
 
-        ui->axes_Layout->addLayout(pbarlayout);
+        axes_Layout->addLayout(pbarlayout);
     }
 
     for(unsigned int j=0;j<joystick.at(current_joystick)->number_btn;j++)
@@ -179,7 +210,7 @@ void Joypick::updateSelection(int index)
         QCheckBox *tempbox = new QCheckBox;
         tempbox->setChecked(false);
         checklist.append(tempbox);
-        ui->buttons_Layout->addWidget(checklist[j]);
+        buttons_Layout->addWidget(checklist[j]);
     }
 }
 
@@ -230,11 +261,11 @@ void Joypick::exttoggle(bool on)
     if(on)
     {
         //        data_timer->start();
-        ui->sample_box->setChecked(true);
+        sample_box->setChecked(true);
     }
     else
     {
         //        data_timer->stop();
-        ui->sample_box->setChecked(false);
+        sample_box->setChecked(false);
     }
 }

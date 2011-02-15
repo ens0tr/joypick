@@ -9,7 +9,7 @@ SOURCES += main.cpp \
     qjoystick.cpp
 HEADERS += joypick.h \
     qjoystick.h
-FORMS += joypick.ui
+#FORMS += joypick.ui
 LIBS += -lSDL
 win32 {
 DEFINES += SDL_WIN

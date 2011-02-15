@@ -3,23 +3,15 @@
 
 #include <QWidget>
 #include <QProgressBar>
-#include <QRadioButton>
 #include <QVBoxLayout>
 #include <QTimer>
 #include <QLabel>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QList>
 #include "qjoystick.h"
-#define MAX_JOYSTICK 32 // UP TO 32 JOYSTICKS
 
-namespace Ui {
-    class Joypick;
-}
-
-// Joystick indicators:
-// Axes
 class QProgressBar;
-// Buttons
 class QCheckBox;
 class QLabel;
 
@@ -49,22 +41,26 @@ public:
     void pollJoystick();
     void exttoggle(bool);
 
-protected:
-    void changeEvent(QEvent *e);
-
 private:
-    Ui::Joypick *ui;
-QJoystick *joy;
+    QJoystick *joy;
     void init_joysticks();
     QTimer *data_timer;
     QList<QProgressBar*> pbarlist;
-    //QProgressBar *pbararray[MAX_AXES];
-   QList<QLabel*> pbarlablist;
-   QList<QCheckBox*> checklist;
-   //QLabel *pbarlabel[MAX_AXES];
- //   QCheckBox *checkarray[MAX_BUTTONS];
-  //  QLabel *checklabel[MAX_BUTTONS];
-   // QVBoxLayout *pbarlayout[MAX_AXES];
+    QList<QLabel*> pbarlablist;
+    QList<QCheckBox*> checklist;
+    void setupui();
+
+    // UI components
+    QVBoxLayout *mainLayout;
+    QLabel *avail_label;
+    QHBoxLayout *horizontalLayout;
+    QComboBox *avail_box;
+    QCheckBox *sample_box;
+    QLabel *num_axbtnlabel;
+    QHBoxLayout *horizontalLayout2;
+    QHBoxLayout *axes_Layout;
+    QHBoxLayout *horizontalLayout3;
+    QHBoxLayout *buttons_Layout;
 
 private slots:
     void updateSelection(int index);

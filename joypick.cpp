@@ -1,5 +1,4 @@
 #include "joypick.h"
-#include "ui_joypick.h"
 
 Joypick::Joypick(QWidget *parent) :
         QWidget(parent)
